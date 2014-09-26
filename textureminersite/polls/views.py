@@ -3,7 +3,8 @@ from django.views import generic
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-from models import AnnotatedImage
+from models import AnnotatedImage, SubImage
+from viewmodels import AnnotatedImageViewModel, SubImageViewModel
 from textureminersite import utils
 
 
@@ -19,10 +20,14 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         imgs = AnnotatedImage.objects.order_by('-comp_date')[:20]
-        svgs = []
+        ret = []
         for im in imgs:
-            svgs.append((im.id, im.name, utils.writeResultsToSvg(im.id)))
-        return svgs
+            subimgs = SubImage.objects.filter(annotatedimage=im.id)
+            minsynthscore = subimgs[0].synth_score
+            maxsynthscore = subimgs[len(subimgs) - 1].synth_score
+            ret.append((AnnotatedImageViewModel(im),
+                        map(lambda sim: SubImageViewModel(sim, minsynthscore=minsynthscore, maxsynthscore=maxsynthscore), subimgs)))
+        return ret
 
 
 class DetailView(generic.DetailView):

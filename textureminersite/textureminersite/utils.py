@@ -3,8 +3,6 @@ import subprocess as sp
 import colorsys
 from datetime import datetime
 
-from PIL import Image
-import svgwrite
 from django.utils import timezone
 
 from polls.models import AnnotatedImage, SubImage
@@ -42,43 +40,7 @@ def parseResFile(fpath):
 
 def rgbheatmap(minimum, maximum, value):
     strength = (value - minimum) / (maximum - minimum)
-    return colorsys.hls_to_rgb(0.0, 0.5, strength)
-
-
-def writeResultsToSvg(imid):
-    img = AnnotatedImage.objects.get(pk=imid)
-    subimgs = SubImage.objects.filter(annotatedimage=imid)
-    resizedw = int(img.width * img.ratio)
-    resizedh = int(img.height * img.ratio)
-
-    # set the viewbox so that we will have a coordinate system based on the image size
-    dwg = svgwrite.Drawing('',
-                           viewBox='0 0 {} {}'.format(resizedw, resizedh),
-                           width='100%',
-                           height='100%')
-    # TODO correct paths somehow...
-    dwg.add(dwg.image(href='/static/polls/' + img.path,
-                      insert=(0, 0),
-                      width=resizedw,
-                      height=resizedh))
-
-    rescount = len(subimgs)
-    minsynthscore = subimgs[0].synth_score
-    maxsynthscore = subimgs[rescount - 1].synth_score
-    for si in subimgs:
-        r, g, b = rgbheatmap(minsynthscore, maxsynthscore, si.synth_score)
-        dwg.add(dwg.rect(insert=(si.col, si.row),
-                         size=(si.width, si.height),
-                         stroke_width="5",
-                         stroke="rgb({}, {}, {})".format(int(r * 255), int(g * 255), int(b * 255)),
-                         fill="none"))
-        text = dwg.text(text='{:.2f}'.format(si.synth_score),
-                        insert=(si.col, si.row - 3),
-                        fill="red")
-        text.attribs['font-size'] = 30
-        dwg.add(text)
-
-    return dwg.tostring()
+    return tuple([int(255 * x) for x in colorsys.hls_to_rgb(0.0, 0.5, strength)])
 
 
 def callMatLab():

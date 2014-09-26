@@ -10,11 +10,22 @@
 
 {% if latest_image_list %}
 <ul>
-    {% for id, name, svg in latest_image_list %}
+    {% for imvm, subimgs in latest_image_list %}
     <li>
-        <a href="{% url 'polls:detail' id %}">{{ name }}</a>
-        <!--TODO remove safe and find another solution!-->
-        <div>{{ svg|safe }}</div>
+        <a href="{% url 'polls:detail' imvm.id %}">{{ imvm.name }}</a>
+        <div>
+            <svg baseProfile="full" height="100%" version="1.1" viewBox="0 0 {{imvm.resizedwidth}} {{imvm.resizedheight}}" width="100%"
+                 xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events"
+                 xmlns:xlink="http://www.w3.org/1999/xlink">
+                <defs/>
+                <image height="{{imvm.resizedheight}}" width="{{imvm.resizedwidth}}" x="0" xlink:href="{% static imvm.path %}" y="0"/>
+                {% for simvm in subimgs %}
+                    <rect fill="none" height="{{simvm.height}}" stroke="rgb({{simvm.r}}, {{simvm.g}}, {{simvm.b}})" stroke-width="5" width="{{simvm.width}}" x="{{simvm.col}}"
+                          y="{{simvm.row}}"/>
+                    <text fill="red" font-size="30" x="{{simvm.sscol}}" y="{{simvm.ssrow}}">{{simvm.synth_score}}</text>
+                {% endfor %}
+            </svg>
+        </div>
     </li>
     {% endfor %}
 </ul>
