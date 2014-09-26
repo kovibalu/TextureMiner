@@ -1,0 +1,23 @@
+{% load staticfiles %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'polls/style.css' %}"/>
+
+
+<form action="{% url 'polls:refresh' %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Refresh images"/>
+</form>
+
+{% if latest_image_list %}
+<ul>
+    {% for id, name, svg in latest_image_list %}
+    <li>
+        <a href="{% url 'polls:detail' id %}">{{ name }}</a>
+        <!--TODO remove safe and find another solution!-->
+        <div>{{ svg|safe }}</div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No images are available.</p>
+{% endif %}
