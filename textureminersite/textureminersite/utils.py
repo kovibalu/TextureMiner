@@ -13,7 +13,6 @@ from polls.models import AnnotatedImage, SubImage
 opensurfacesRoot = 'd:/Cornell/OpenSurfaces/'
 photosPath = 'photos/'
 resultsPath = 'synthesizability_code/results/'
-max_img_res = 2000
 
 
 def getFileLines(fpath):
@@ -47,10 +46,9 @@ def rgbheatmap(minimum, maximum, value):
 def writeResultsToSvg(imid):
     img = AnnotatedImage.objects.get(pk=imid)
     imgw, imgh = Image.open(opensurfacesRoot + img.path).size
-    resizeratio = float(max_img_res) / max(imgh, imgw)
     subimgs = SubImage.objects.filter(annotatedimage=imid)
-    resizedw = int(imgw * resizeratio)
-    resizedh = int(imgh * resizeratio)
+    resizedw = int(imgw * img.ratio)
+    resizedh = int(imgh * img.ratio)
 
     # set the viewbox so that we will have a coordinate system based on the image size
     dwg = svgwrite.Drawing('',
