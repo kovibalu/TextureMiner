@@ -26,16 +26,18 @@ def getFileLines(fpath):
 def parseResFile(fpath):
     lines = filter(lambda l: len(l) != 0, getFileLines(fpath))
     n = int(lines[0])
-    ratio = float(lines[1])
+    width = int(lines[1])
+    height = int(lines[2])
+    ratio = float(lines[3])
     res = []
     for i in range(n):
-        currind = 7 * i + 2
+        currind = 7 * i + 4
         res.append({'synscore': float(lines[currind]), 'col': int(lines[currind + 1]), 'row': int(lines[currind + 2]),
                     'width': int(lines[currind + 3]), 'height': int(lines[currind + 4]),
                     'gmagavg': float(lines[currind + 5]),
                     'features': lines[currind + 6]})
 
-    return ratio, res
+    return width, height, ratio, res
 
 
 def rgbheatmap(minimum, maximum, value):
@@ -45,10 +47,9 @@ def rgbheatmap(minimum, maximum, value):
 
 def writeResultsToSvg(imid):
     img = AnnotatedImage.objects.get(pk=imid)
-    imgw, imgh = Image.open(opensurfacesRoot + img.path).size
     subimgs = SubImage.objects.filter(annotatedimage=imid)
-    resizedw = int(imgw * img.ratio)
-    resizedh = int(imgh * img.ratio)
+    resizedw = int(img.width * img.ratio)
+    resizedh = int(img.height * img.ratio)
 
     # set the viewbox so that we will have a coordinate system based on the image size
     dwg = svgwrite.Drawing('',
@@ -100,11 +101,13 @@ def refreshAllImages():
                                         timezone.get_default_timezone())
             # we put it if it's fresher
             if cdate > freshestdate:
-                ratio, results = parseResFile(fullfilepath)
+                width, height, ratio, results = parseResFile(fullfilepath)
                 imgname = parts[0].split('-')[0]
                 ai = AnnotatedImage(name=imgname,
                                     path=photosPath + imgname + '.jpg',
                                     comp_date=cdate,
+                                    width=width,
+                                    height=height,
                                     ratio=ratio)
                 ai.save()
                 for res in results:

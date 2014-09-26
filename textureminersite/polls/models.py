@@ -7,6 +7,8 @@ class AnnotatedImage(models.Model):
     name = models.CharField(max_length=200)
     path = models.CharField(max_length=200, default='')
     comp_date = models.DateTimeField('date computed')
+    width = models.IntegerField(default=0)
+    height = models.IntegerField(default=0)
     ratio = models.FloatField(default=0)
 
     def __str__(self):  # __unicode__ on Python 2
