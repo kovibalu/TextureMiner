@@ -45,3 +45,8 @@ class ResultsView(generic.DetailView):
 def refresh(request):
     utils.refreshAllImages()
     return HttpResponseRedirect(reverse('polls:index'))
+
+
+def cleardatabase(request):
+    utils.clearDatabase()
+    return HttpResponseRedirect(reverse('polls:index'))

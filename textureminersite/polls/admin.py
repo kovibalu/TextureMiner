@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from models import AnnotatedImage
 from models import SubImage
+from models import FeatureVector
 
 
 # Register your models here.
@@ -17,3 +18,4 @@ class AnnotatedImageAdmin(admin.ModelAdmin):
 
 admin.site.register(AnnotatedImage, AnnotatedImageAdmin)
 admin.site.register(SubImage)
+admin.site.register(FeatureVector)

@@ -4,9 +4,7 @@ import colorsys
 from datetime import datetime
 
 from django.utils import timezone
-
-from polls.models import AnnotatedImage, SubImage
-
+from polls.models import AnnotatedImage, SubImage, FeatureVector
 
 opensurfacesRoot = 'd:/Cornell/OpenSurfaces/'
 photosPath = 'photos/'
@@ -33,7 +31,7 @@ def parseResFile(fpath):
         res.append({'synscore': float(lines[currind]), 'col': int(lines[currind + 1]), 'row': int(lines[currind + 2]),
                     'width': int(lines[currind + 3]), 'height': int(lines[currind + 4]),
                     'gmagavg': float(lines[currind + 5]),
-                    'features': lines[currind + 6]})
+                    'features': map(lambda w: float(w), filter(lambda w: len(w) != 0, lines[currind + 6].split(' ')))})
 
     return width, height, ratio, res
 
@@ -59,18 +57,27 @@ def refreshAllImages():
         fullfilepath = opensurfacesRoot + resultsPath + c
         parts = os.path.splitext(c)
         if parts[1] == '.txt':
-            cdate = timezone.make_aware(datetime.fromtimestamp(os.path.getctime(fullfilepath)),
+            mdate = timezone.make_aware(datetime.fromtimestamp(os.path.getmtime(fullfilepath)),
                                         timezone.get_default_timezone())
+            print 'Processing {}, date: {}...'.format(c, mdate)
             # we put it if it's fresher
-            if cdate > freshestdate:
+            if mdate > freshestdate:
                 width, height, ratio, results = parseResFile(fullfilepath)
                 imgname = parts[0].split('-')[0]
-                ai = AnnotatedImage(name=imgname,
-                                    path=photosPath + imgname + '.jpg',
-                                    comp_date=cdate,
-                                    width=width,
-                                    height=height,
-                                    ratio=ratio)
+
+                # if we can find it in the database, then we update it, otherwise we create a new entity
+                samenameimgs = AnnotatedImage.objects.filter(name=imgname)
+                if samenameimgs.exists():
+                    ai = samenameimgs[0]
+                else:
+                    ai = AnnotatedImage()
+                    ai.name = imgname
+
+                ai.path = photosPath + imgname + '.jpg'
+                ai.comp_date = mdate
+                ai.width = width
+                ai.height = height
+                ai.ratio = ratio
                 ai.save()
                 for res in results:
                     si = SubImage(annotatedimage=ai,
@@ -81,3 +88,15 @@ def refreshAllImages():
                                   synth_score=res['synscore'],
                                   gmagavg=res['gmagavg'])
                     si.save()
+                    fv = FeatureVector(subimage=si,
+                                        textureness=res['features'][0],
+                                        homogeneity=res['features'][1],
+                                        repetitiveness=res['features'][2],
+                                        irregularity=res['features'][3])
+                    fv.save()
+
+
+def clearDatabase():
+    FeatureVector.objects.all().delete()
+    SubImage.objects.all().delete()
+    AnnotatedImage.objects.all().delete()

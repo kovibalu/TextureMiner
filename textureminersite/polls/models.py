@@ -1,6 +1,8 @@
+import datetime
+
 from django.db import models
 from django.utils import timezone
-import datetime
+
 
 # Create your models here.
 class AnnotatedImage(models.Model):
@@ -30,5 +32,16 @@ class SubImage(models.Model):
 
 
 def __str__(self):  # __unicode__ on Python 2
-        return '{}: {} {} {} {}'.format(self.annotatedimage.name, self.col, self.row, self.width, self.height)
+    return '{}: {} {} {} {}'.format(self.annotatedimage.name, self.col, self.row, self.width, self.height)
+
+
+class FeatureVector(models.Model):
+    subimage = models.ForeignKey(SubImage)
+    textureness = models.FloatField(default=0)
+    homogeneity = models.FloatField(default=0)
+    repetitiveness = models.FloatField(default=0)
+    irregularity = models.FloatField(default=0)
+
+
+
 
