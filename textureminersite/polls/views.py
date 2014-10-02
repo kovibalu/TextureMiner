@@ -1,14 +1,15 @@
 from django.views import generic
-
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-
-from models import AnnotatedImage, SubImage
-from viewmodels import AnnotatedImageViewModel, SubImageViewModel, getViewModelsFromImage
-from textureminersite import utils
+from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.decorators.csrf import csrf_protect
 import simplejson
+
+from models import AnnotatedImage
+from viewmodels import getViewModelsFromImage
+from textureminersite import utils
 
 
 # Create your views here.
@@ -31,14 +32,17 @@ def indexView(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         imgs = paginator.page(paginator.num_pages)
 
-    return render_to_response('polls/index.html', {"latest_image_list": map(lambda im : getViewModelsFromImage(im), imgs),
-                              "paged_imgs" : imgs})
+    c = RequestContext(request, {"latest_image_list": map(lambda im: getViewModelsFromImage(im), imgs),
+                                 "paged_imgs": imgs})
+    return render_to_response('polls/index.html', c)
+
 
 def detailView(request, im_id):
     im = AnnotatedImage.objects.get(pk=im_id)
     imvm, sivms = getViewModelsFromImage(im)
     js_data = simplejson.dumps(utils.buildFeatureDictionaryForImage(im))
     return render_to_response('polls/detail.html', {'imvm': imvm, 'sivms': sivms, 'js_data': js_data})
+
 
 class ResultsView(generic.DetailView):
     model = AnnotatedImage
@@ -47,8 +51,9 @@ class ResultsView(generic.DetailView):
 
 
 def refresh(request):
+    c = RequestContext(request)
     utils.refreshAllImages()
-    return HttpResponseRedirect(reverse('polls:index'))
+    return HttpResponseRedirect(reverse('polls:index'), c)
 
 
 def cleardatabase(request):

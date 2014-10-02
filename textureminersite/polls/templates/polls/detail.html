@@ -14,26 +14,19 @@
           svgWidth = 600;
           svgHeight = 200;
           for (i = 0; i < features.length; i++) {
-             AddSvgToDOM(features[i], svgWidth, svgHeight);
+             d3.select('#charts')
+             .append('h2')
+             .text(features[i]);
+
+             d3.select('#charts')
+             .append('svg')
+             .attr('id', 'visualization-' + features[i])
+             .attr('width', svgWidth)
+             .attr('height', svgHeight);
+
              InitChart(imageData, features[i], svgWidth, svgHeight);
           }
         };
-
-        function AddSvgToDOM(featureName, svgWidth, svgHeight) {
-             //create a new h2 element called featureTitleElem
-             var featureTitleElem = document.createElement("h2");
-             // add new inner HTML for sideHead
-             featureTitleElem.innerHTML = featureName;
-             // append the sideHead element to the sidebar ID section
-             document.getElementById("charts").appendChild(featureTitleElem);
-
-             var NS = "http://www.w3.org/2000/svg";
-             var svg = document.createElementNS(NS, "svg");
-             svg.setAttribute("width", svgWidth);
-             svg.setAttribute("height", svgHeight);
-             svg.id = "visualization-" + featureName;
-             document.getElementById("charts").appendChild(svg);
-        }
 
         function highlightSubImage(subImageId, turnOn) {
             elem = document.getElementById("visualization-subimage-" + subImageId);
