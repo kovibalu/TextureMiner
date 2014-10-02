@@ -8,10 +8,10 @@
     <input type="submit" value="Refresh images"/>
 </form>
 
-<form action="{% url 'polls:cleardatabase' %}" method="post">
-    {% csrf_token %}
-    <input type="submit" value="Clear database"/>
-</form>
+<!--<form action="{% url 'polls:cleardatabase' %}" method="post">-->
+    <!--{% csrf_token %}-->
+    <!--<input type="submit" value="Clear database"/>-->
+<!--</form>-->
 
 {% if latest_image_list %}
     {% for imvm, sivms in latest_image_list %}
