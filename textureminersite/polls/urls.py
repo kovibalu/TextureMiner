@@ -10,7 +10,7 @@ urlpatterns = patterns('',
                        # ex: /polls/cleardatabase
                        url(r'^cleardatabase$', views.cleardatabase, name='cleardatabase'),
                        # ex: /polls/5/
-                       url(r'^(?P<pk>\d+)/$', views.DetailView.as_view(), name='detail'),
+                       url(r'^(?P<im_id>\d+)/$', views.detailView, name='detail'),
                        # ex: /polls/5/results/
                        url(r'^(?P<pk>\d+)/results/$', views.ResultsView.as_view(), name='results'),
 )

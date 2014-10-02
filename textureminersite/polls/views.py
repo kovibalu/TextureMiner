@@ -4,8 +4,10 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
 from models import AnnotatedImage, SubImage
-from viewmodels import AnnotatedImageViewModel, SubImageViewModel
+from viewmodels import AnnotatedImageViewModel, SubImageViewModel, getViewModelsFromImage
 from textureminersite import utils
+from django.shortcuts import render_to_response
+import simplejson
 
 
 # Create your views here.
@@ -22,19 +24,15 @@ class IndexView(generic.ListView):
         imgs = AnnotatedImage.objects.order_by('-comp_date')[:20]
         ret = []
         for im in imgs:
-            subimgs = SubImage.objects.filter(annotatedimage=im.id)
-            minsynthscore = subimgs[0].synth_score
-            maxsynthscore = subimgs[len(subimgs) - 1].synth_score
-            ret.append((AnnotatedImageViewModel(im),
-                        map(lambda sim: SubImageViewModel(sim, minsynthscore=minsynthscore, maxsynthscore=maxsynthscore), subimgs)))
+            ret.append(getViewModelsFromImage(im))
         return ret
 
 
-class DetailView(generic.DetailView):
-    model = AnnotatedImage
-    context_object_name = 'image'
-    template_name = 'polls/detail.html'
-
+def detailView(request, im_id):
+    im = AnnotatedImage.objects.get(pk=im_id)
+    imvm, sivms = getViewModelsFromImage(im)
+    js_data = simplejson.dumps(utils.buildFeatureDictionaryForImage(im))
+    return render_to_response('polls/detail.html', {'imvm': imvm, 'sivms': sivms, 'js_data': js_data})
 
 class ResultsView(generic.DetailView):
     model = AnnotatedImage

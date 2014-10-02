@@ -1,4 +1,5 @@
 from textureminersite import utils
+from models import AnnotatedImage, SubImage
 
 class AnnotatedImageViewModel:
     def __init__(self, ai):
@@ -26,3 +27,12 @@ class SubImageViewModel:
         self.ssrow = si.row - 3
         self.gmagavg = si.gmagavg
         self.r, self.g, self.b = utils.rgbheatmap(minsynthscore, maxsynthscore, si.synth_score)
+
+def getViewModelsFromImage(im):
+    subimgs = SubImage.objects.filter(annotatedimage=im.id)
+    minsynthscore = subimgs[0].synth_score
+    maxsynthscore = subimgs[len(subimgs) - 1].synth_score
+
+    return (AnnotatedImageViewModel(im),
+                map(lambda sim: SubImageViewModel(sim, minsynthscore=minsynthscore, maxsynthscore=maxsynthscore),
+                    subimgs))

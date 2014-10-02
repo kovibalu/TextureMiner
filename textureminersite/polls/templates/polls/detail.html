@@ -1,6 +1,115 @@
-<h1>{{ image.name }}</h1>
-<ul>
-    {% for si in image.subimage_set.all %}
-    <li>{{ si.synth_score }}</li>
-    {% endfor %}
-</ul>
+<!DOCTYPE html>
+
+{% load staticfiles %}
+
+<html>
+<head>
+    <script type="text/javascript" src="{% static 'polls/js/d3/d3.min.js' %}"></script>
+    <script>
+        window.onload = function() {
+          var imageData = {{ js_data|safe }};
+          features = ["textureness", "homogeneity", "repetitiveness", "irregularity"];
+          svgWidth = 600;
+          svgHeight = 200;
+          for (i = 0; i < features.length; i++) {
+             AddSvgToDOM(features[i], svgWidth, svgHeight);
+             InitChart(imageData, features[i], svgWidth, svgHeight);
+          }
+        };
+
+        function AddSvgToDOM(featureName, svgWidth, svgHeight) {
+             //create a new h2 element called featureTitleElem
+             var featureTitleElem = document.createElement("h2");
+             // add new inner HTML for sideHead
+             featureTitleElem.innerHTML = featureName;
+             // append the sideHead element to the sidebar ID section
+             document.getElementById("charts").appendChild(featureTitleElem);
+
+             var NS = "http://www.w3.org/2000/svg";
+             var svg = document.createElementNS(NS, "svg");
+             svg.setAttribute("width", svgWidth);
+             svg.setAttribute("height", svgHeight);
+             svg.id = "visualization-" + featureName;
+             document.getElementById("charts").appendChild(svg);
+        }
+
+        function InitChart(imageData, featureName, svgWidth, svgHeight) {
+          subimagelist = imageData.subimagelist
+          // Sort in descending order by synthesizability score
+          subimagelist.sort(function(a, b){return b["synth_score"]-a["synth_score"]});
+
+          var vis = d3.select('#visualization-' + featureName),
+            WIDTH = svgWidth,
+            HEIGHT = svgHeight,
+            MARGINS = {
+              top: 20,
+              right: 20,
+              bottom: 20,
+              left: 50
+            },
+            xRange = d3.scale.ordinal().rangeRoundBands([MARGINS.left, WIDTH - MARGINS.right], 0.1).domain(
+                subimagelist.map(function(si) {return si["synth_score"].toFixed(2);})),
+            yRange = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([0,
+              d3.max(subimagelist, function (si) { return si[featureName]; })
+            ]),
+            xAxis = d3.svg.axis()
+              .scale(xRange)
+              .tickSize(5)
+              .tickSubdivide(true),
+            yAxis = d3.svg.axis()
+              .scale(yRange)
+              .tickSize(5)
+              .orient("left")
+              .tickSubdivide(true);
+
+
+          vis.append('svg:g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + (HEIGHT - MARGINS.bottom) + ')')
+            .call(xAxis);
+
+          vis.append('svg:g')
+            .attr('class', 'y axis')
+            .attr('transform', 'translate(' + (MARGINS.left) + ',0)')
+            .call(yAxis);
+
+          vis.selectAll('rect')
+            .data(subimagelist)
+            .enter()
+            .append('rect')
+            .attr('x', function (si) { // sets the x position of the bar
+              return xRange(si["synth_score"].toFixed(2));
+            })
+            .attr('y', function (si) { // sets the y position of the bar
+              return yRange(si[featureName]);
+            })
+            .attr('width', xRange.rangeBand()) // sets the width of bar
+            .attr('height', function (si) { // sets the height of bar
+              return ((HEIGHT - MARGINS.bottom) - yRange(si[featureName]));
+            })
+            .attr('fill', 'grey'); // fills the bar with grey color
+        }
+    </script>
+</head>
+<body>
+<h1>Feature values for subimages of {{ imvm.name }}</h1>
+
+<div>
+    <svg baseProfile="full" width="800" version="1.1" viewBox="0 0 {{imvm.resizedwidth}} {{imvm.resizedheight}}"
+         xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs/>
+        <image height="{{imvm.resizedheight}}" width="{{imvm.resizedwidth}}" x="0" xlink:href="{% static imvm.path %}"
+               y="0"/>
+        {% for sivm in sivms %}
+        <rect fill="none" height="{{sivm.height}}" stroke="rgb({{sivm.r}}, {{sivm.g}}, {{sivm.b}})" stroke-width="5"
+              width="{{sivm.width}}" x="{{sivm.col}}"
+              y="{{sivm.row}}"/>
+        <text fill="red" font-size="30" x="{{sivm.sscol}}" y="{{sivm.ssrow}}">{{sivm.synth_score}}</text>
+        {% endfor %}
+    </svg>
+</div>
+
+<div id="charts"></div>
+</body>
+</html>

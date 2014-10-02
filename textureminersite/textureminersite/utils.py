@@ -4,6 +4,7 @@ import colorsys
 from datetime import datetime
 
 from django.utils import timezone
+from django.forms.models import model_to_dict
 from polls.models import AnnotatedImage, SubImage, FeatureVector
 
 opensurfacesRoot = 'd:/Cornell/OpenSurfaces/'
@@ -100,3 +101,19 @@ def clearDatabase():
     FeatureVector.objects.all().delete()
     SubImage.objects.all().delete()
     AnnotatedImage.objects.all().delete()
+
+def buildFeatureDictionaryForImage(img):
+    imgDic = {}
+    subimageList = []
+    for si in img.subimage_set.all():
+        features = si.featurevector_set.all()
+        siDic = model_to_dict(features[0])
+        siDic.update(model_to_dict(si))
+        subimageList.append(siDic)
+    imgDic = model_to_dict(img)
+    # get rid of the date because it's not JSON serializable
+    # TODO: maybe later we want to use it, convert to timestamp?
+    del imgDic['comp_date']
+    imgDic.update({'subimagelist':subimageList})
+
+    return imgDic
