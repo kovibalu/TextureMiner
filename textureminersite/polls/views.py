@@ -19,9 +19,10 @@ import simplejson
 class IndexView(generic.ListView):
     template_name = 'polls/index.html'
     context_object_name = 'latest_image_list'
+    paginate_by = 5
 
     def get_queryset(self):
-        imgs = AnnotatedImage.objects.order_by('-comp_date')[:20]
+        imgs = AnnotatedImage.objects.order_by('-comp_date')
         ret = []
         for im in imgs:
             ret.append(getViewModelsFromImage(im))

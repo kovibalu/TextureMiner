@@ -14,6 +14,22 @@
 <!--</form>-->
 
 {% if latest_image_list %}
+    {% if is_paginated %}
+    <div class="pagination">
+        <span class="page-links">
+            {% if page_obj.has_previous %}
+                <a href="{% url 'polls:index' %}?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+            <span class="page-current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            {% if page_obj.has_next %}
+                <a href="{% url 'polls:index' %}?page={{ page_obj.next_page_number }}">next</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+
     {% for imvm, sivms in latest_image_list %}
     <p>
         <a href="{% url 'polls:detail' imvm.id %}">
@@ -21,6 +37,22 @@
         </a>
     </p>
     {% endfor %}
+
+    {% if is_paginated %}
+    <div class="pagination">
+        <span class="page-links">
+            {% if page_obj.has_previous %}
+                <a href="{% url 'polls:index' %}?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+            <span class="page-current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            {% if page_obj.has_next %}
+                <a href="{% url 'polls:index' %}?page={{ page_obj.next_page_number }}">next</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
 {% else %}
 <p>No images are available.</p>
 {% endif %}
