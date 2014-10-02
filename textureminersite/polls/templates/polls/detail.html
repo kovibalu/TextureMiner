@@ -94,21 +94,7 @@
 <body>
 <h1>Feature values for subimages of {{ imvm.name }}</h1>
 
-<div>
-    <svg baseProfile="full" width="800" version="1.1" viewBox="0 0 {{imvm.resizedwidth}} {{imvm.resizedheight}}"
-         xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events"
-         xmlns:xlink="http://www.w3.org/1999/xlink">
-        <defs/>
-        <image height="{{imvm.resizedheight}}" width="{{imvm.resizedwidth}}" x="0" xlink:href="{% static imvm.path %}"
-               y="0"/>
-        {% for sivm in sivms %}
-        <rect fill="none" height="{{sivm.height}}" stroke="rgb({{sivm.r}}, {{sivm.g}}, {{sivm.b}})" stroke-width="5"
-              width="{{sivm.width}}" x="{{sivm.col}}"
-              y="{{sivm.row}}"/>
-        <text fill="red" font-size="30" x="{{sivm.sscol}}" y="{{sivm.ssrow}}">{{sivm.synth_score}}</text>
-        {% endfor %}
-    </svg>
-</div>
+{% include "polls/imageAndSubImages.html" %}
 
 <div id="charts"></div>
 </body>
