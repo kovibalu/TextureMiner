@@ -14,15 +14,13 @@
 </form>
 
 {% if latest_image_list %}
-<ul>
     {% for imvm, sivms in latest_image_list %}
-    <li>
-        <a href="{% url 'polls:detail' imvm.id %}">{{ imvm.name }}</a>
-
-        {% include "polls/imageAndSubImages.html" %}
-    </li>
+    <p>
+        <a href="{% url 'polls:detail' imvm.id %}">
+            {% include "polls/imageAndSubImages.html" %}
+        </a>
+    </p>
     {% endfor %}
-</ul>
 {% else %}
 <p>No images are available.</p>
 {% endif %}
