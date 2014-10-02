@@ -6,8 +6,10 @@
 <head>
     <script type="text/javascript" src="{% static 'polls/js/d3/d3.min.js' %}"></script>
     <script>
+        var imageData = {{ js_data|safe }};
+        var imgId = {{imvm.id}};
+
         window.onload = function() {
-          var imageData = {{ js_data|safe }};
           features = ["textureness", "homogeneity", "repetitiveness", "irregularity"];
           svgWidth = 600;
           svgHeight = 200;
@@ -33,6 +35,19 @@
              document.getElementById("charts").appendChild(svg);
         }
 
+        function highlightSubImage(subImageId, turnOn) {
+            elem = document.getElementById("visualization-subimage-" + subImageId);
+            if (turnOn) {
+                elem.setAttribute('stroke-width', 15);
+                elem.setAttribute('fill', 'rgb(255, 0, 0)');
+                elem.setAttribute('fill-opacity', '0.2');
+            } else {
+                elem.setAttribute('stroke-width', 5);
+                elem.setAttribute('fill', 'none');
+                elem.setAttribute('fill-opacity', '1');
+            }
+        }
+
         function InitChart(imageData, featureName, svgWidth, svgHeight) {
           subimagelist = imageData.subimagelist
           // Sort in descending order by synthesizability score
@@ -48,7 +63,7 @@
               left: 50
             },
             xRange = d3.scale.ordinal().rangeRoundBands([MARGINS.left, WIDTH - MARGINS.right], 0.1).domain(
-                subimagelist.map(function(si) {return si["synth_score"].toFixed(2);})),
+                subimagelist.map(function(si) {return si["synth_score"].toFixed(3);})),
             yRange = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([0,
               d3.max(subimagelist, function (si) { return si[featureName]; })
             ]),
@@ -61,7 +76,6 @@
               .tickSize(5)
               .orient("left")
               .tickSubdivide(true);
-
 
           vis.append('svg:g')
             .attr('class', 'x axis')
@@ -78,7 +92,7 @@
             .enter()
             .append('rect')
             .attr('x', function (si) { // sets the x position of the bar
-              return xRange(si["synth_score"].toFixed(2));
+              return xRange(si["synth_score"].toFixed(3));
             })
             .attr('y', function (si) { // sets the y position of the bar
               return yRange(si[featureName]);
@@ -87,7 +101,15 @@
             .attr('height', function (si) { // sets the height of bar
               return ((HEIGHT - MARGINS.bottom) - yRange(si[featureName]));
             })
-            .attr('fill', 'grey'); // fills the bar with grey color
+            .attr('fill', 'grey') // fills the bar with grey color
+            .on('mouseenter', function(si, index) {
+              d3.select(this).style('stroke', 'red');
+              highlightSubImage(si['subimage'], true);
+            })
+            .on('mouseleave', function(si, index) {
+              d3.select(this).style('stroke', 'none');
+              highlightSubImage(si['subimage'], false);
+            })
         }
     </script>
 </head>
