@@ -4,7 +4,7 @@ import views
 
 urlpatterns = patterns('',
                        # ex: /polls/
-                       url(r'^$', views.IndexView.as_view(), name='index'),
+                       url(r'^$', views.indexView, name='index'),
                        # ex: /polls/refresh
                        url(r'^refresh$', views.refresh, name='refresh'),
                        # ex: /polls/cleardatabase

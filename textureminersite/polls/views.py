@@ -7,6 +7,7 @@ from models import AnnotatedImage, SubImage
 from viewmodels import AnnotatedImageViewModel, SubImageViewModel, getViewModelsFromImage
 from textureminersite import utils
 from django.shortcuts import render_to_response
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import simplejson
 
 
@@ -16,18 +17,22 @@ import simplejson
 # context = {'latest_image_list': latest_image_list}
 # return render(request, 'polls/index.html', context)
 
-class IndexView(generic.ListView):
-    template_name = 'polls/index.html'
-    context_object_name = 'latest_image_list'
-    paginate_by = 5
+def indexView(request):
+    image_list = AnnotatedImage.objects.order_by('-comp_date')
+    paginator = Paginator(image_list, 5)  # Show 5 images per page
 
-    def get_queryset(self):
-        imgs = AnnotatedImage.objects.order_by('-comp_date')
-        ret = []
-        for im in imgs:
-            ret.append(getViewModelsFromImage(im))
-        return ret
+    page = request.GET.get('page')
+    try:
+        imgs = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        imgs = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        imgs = paginator.page(paginator.num_pages)
 
+    return render_to_response('polls/index.html', {"latest_image_list": map(lambda im : getViewModelsFromImage(im), imgs),
+                              "paged_imgs" : imgs})
 
 def detailView(request, im_id):
     im = AnnotatedImage.objects.get(pk=im_id)
